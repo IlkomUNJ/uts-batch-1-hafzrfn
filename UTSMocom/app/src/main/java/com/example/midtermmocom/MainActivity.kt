@@ -3,14 +3,15 @@ package com.example.midtermmocom
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.contactmanager.data.ContactViewModel
-import com.example.contactmanager.ui.AddEditScreen
-import com.example.contactmanager.ui.ListContactScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,7 +48,17 @@ fun ContactApp(vm: ContactViewModel = viewModel()) {
         composable(Screen.AddEditScreen.route) {
             val isEdit = editIndex >= 0
             AddEditScreen(
-
+                title = if (isEdit) "Edit Contact" else "Add Contact",
+                initial = if (isEdit) vm.getContacts()[editIndex] else null,
+                onSubmit = { contact ->
+                    if (contact.address.split(" ").size < 5)
+                        return@AddEditScreen "Address minimum 5 words"
+                    if (isEdit) vm.updateContact(editIndex, contact)
+                    else vm.addContact(contact)
+                    navController.popBackStack()
+                    null
+                },
+                onCancel = { navController.popBackStack() }
             )
         }
     }
